@@ -1,0 +1,46 @@
+version: '3.9'
+
+services:
+  nginx:
+    build:
+      context: ./nginx
+    container_name: nginx
+    ports:
+      - "8080:80"
+    depends_on:
+      - backend
+    networks:
+      - frontend_network
+
+  backend:
+    build:
+      context: ./backend
+    container_name: backend
+
+    volumes:
+      - ./backend:/app
+    environment:
+      - SERVER_NAME=backend
+    networks:
+      - frontend_network
+      - backend_network
+
+  db:
+    build:
+      context: ./database
+    container_name: database
+    restart: always
+    volumes:
+      - ./sql_data:/var/lib/mysql
+      - ./database/init.sql:/docker-entrypoint-initdb.d/init.sql
+    environment:
+      MYSQL_ROOT_PASSWORD: password
+      MYSQL_DATABASE: test_db
+    networks:
+      - backend_network
+
+networks:
+  frontend_network:
+    driver: bridge
+  backend_network:
+    driver: bridge
