@@ -10,20 +10,32 @@ services:
     depends_on:
       - backend
     networks:
-      - frontend_network
+      - app_network
 
   backend:
     build:
       context: ./backend
     container_name: backend
-
     volumes:
       - ./backend:/app
     environment:
       - SERVER_NAME=backend
     networks:
-      - frontend_network
-      - backend_network
+      - app_network
+
+  swagger-ui:
+    image: swaggerapi/swagger-ui
+    container_name: swagger-ui
+    environment:
+      - SWAGGER_JSON=/swagger/openapi.json  # 指向 Flask OpenAPI 文檔
+    ports:
+      - "8090:8080"
+    depends_on:
+      - backend
+    networks:
+      - app_network
+    volumes:
+      - ./swagger:/swagger
 
   db:
     build:
@@ -35,12 +47,10 @@ services:
       - ./database/init.sql:/docker-entrypoint-initdb.d/init.sql
     environment:
       MYSQL_ROOT_PASSWORD: password
-      MYSQL_DATABASE: test_db
+      MYSQL_DATABASE: SOGO
     networks:
-      - backend_network
+      - app_network
 
 networks:
-  frontend_network:
-    driver: bridge
-  backend_network:
+  app_network:
     driver: bridge
