@@ -22,19 +22,6 @@ services:
       - SERVER_NAME=backend
     networks:
       - app_network
-
-  swagger-ui:
-    build:
-      context: ./swagger
-      dockerfile: Dockerfile
-    environment:
-      - SWAGGER_JSON=/swagger/openapi.json
-    volumes:
-      - ./swagger:/swagger
-    ports:
-      - "8090:8080"
-    networks:
-      - app_network
       
   db:
     build:
