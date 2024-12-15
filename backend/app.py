@@ -12,21 +12,6 @@ def create_app(config_name='default'):
     # 初始化資料庫
     db.init_app(app)
 
-    # 初始化 Swagger
-    swagger = Swagger(app, template={
-        "swagger": "2.0",
-        "info": {
-            "title": "Shopping Mall API",
-            "description": "API documentation for Shopping Mall System",
-            "version": "1.0.0"
-        },
-        "host": "localhost:8080",  # 在開發中是 nginx 的代理地址
-        "schemes": ["http"],
-        "basePath": "/",
-        "paths": {}
-    })
-
-
     @app.route("/")
     def hello_world():
         return "Hello, World!"

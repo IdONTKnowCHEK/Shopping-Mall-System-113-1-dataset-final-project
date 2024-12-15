@@ -7,18 +7,6 @@
     },
     "host": "localhost:8080",
     "schemes": ["http"],
-    "basePath": "/",
-    "paths": {
-      "/malls": {
-        "get": {
-          "summary": "Get all malls",
-          "responses": {
-            "200": {
-              "description": "A list of malls"
-            }
-          }
-        }
-      }
-    }
+    "basePath": "/"
   }
   

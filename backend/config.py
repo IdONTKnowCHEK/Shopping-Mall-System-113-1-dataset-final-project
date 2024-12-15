@@ -7,25 +7,11 @@ class Config:
 class DevelopmentConfig(Config):
     """Development configuration."""
     DEBUG = True
-    SQLALCHEMY_DATABASE_URI = "mysql+pymysql://root:example@database/my_database"  # 替換為您的數據庫連接字串
-
-
-class ProductionConfig(Config):
-    """Production configuration."""
-    DEBUG = False
-    SQLALCHEMY_DATABASE_URI = "mysql+pymysql://root:password@database/my_database"
-
-
-class TestingConfig(Config):
-    """Testing configuration."""
-    TESTING = True
-    SQLALCHEMY_DATABASE_URI = "sqlite:///:memory:"
+    SQLALCHEMY_DATABASE_URI = "mysql+pymysql://root:password@database/SOGO"  # 替換為您的數據庫連接字串
 
 
 # 配置映射
 config = {
     "development": DevelopmentConfig,
-    "production": ProductionConfig,
-    "testing": TestingConfig,
     "default": DevelopmentConfig,
 }

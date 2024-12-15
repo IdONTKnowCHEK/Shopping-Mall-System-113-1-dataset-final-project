@@ -24,19 +24,18 @@ services:
       - app_network
 
   swagger-ui:
-    image: swaggerapi/swagger-ui
-    container_name: swagger-ui
+    build:
+      context: ./swagger
+      dockerfile: Dockerfile
     environment:
-      - SWAGGER_JSON=/swagger/openapi.json  # 指向 Flask OpenAPI 文檔
-    ports:
-      - "8090:8080"
-    depends_on:
-      - backend
-    networks:
-      - app_network
+      - SWAGGER_JSON=/swagger/openapi.json
     volumes:
       - ./swagger:/swagger
-
+    ports:
+      - "8090:8080"
+    networks:
+      - app_network
+      
   db:
     build:
       context: ./database
