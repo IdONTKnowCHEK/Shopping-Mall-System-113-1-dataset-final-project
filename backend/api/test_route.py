@@ -1,8 +1,9 @@
 from flask import Blueprint, request, jsonify
 
 test_bp = Blueprint("test", __name__)  # 定義 Blueprint
+base_url = "/api/test/"  # 定義路由前綴
 
-@test_bp.route('/api/v1/add', methods=['POST'])
+@test_bp.route(base_url+'add', methods=['POST'])
 def add_numbers():
     """
     計算兩個數字的和
@@ -36,7 +37,7 @@ def add_numbers():
     except (ValueError, TypeError):
         return jsonify({"error": "Invalid input"}), 400
 
-@test_bp.route('/api/v1/sub', methods=['POST'])
+@test_bp.route(base_url+'sub', methods=['POST'])
 def sub_numbers():
     """
     計算兩個數字的差

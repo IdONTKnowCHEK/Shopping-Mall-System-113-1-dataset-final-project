@@ -24,8 +24,11 @@ def create_app(config_name='default'):
         return "Hello, World!"
 
     return app
-    
+
+
 if __name__ == "__main__":
     os.environ['FLASK_ENV'] = 'development'  # 開發模式
     app = create_app()
     app.run(host="0.0.0.0", port=5000, debug=True)
+
+# Swagger: http://localhost:8080/apidocs/#/
