@@ -1,4 +1,6 @@
-from flask import Blueprint, jsonify, request, current_app
+from flask import Blueprint, jsonify, request, make_response, json
+from models.models import db
+from sqlalchemy import text
 
 goods_bp = Blueprint('goods', __name__)
 
@@ -29,24 +31,35 @@ def get_shop_goods():
         examples:
           application/json: {"error": "Shop name is required"}
     """
-    shop_name = request.args.get('shop_name')
-    if not shop_name:
-        return jsonify({"error": "Shop name is required"}), 400
+    try:
+        # 從 Query 參數取得 shop_name
+        shop_name = request.args.get('shop_name')
+        if not shop_name:
+            return jsonify({"error": "Shop name is required"}), 400
 
-    # 使用 current_app 獲取 SQLAlchemy 的資料庫會話
-    db = current_app.extensions['sqlalchemy'].db
+        # 查詢指定店鋪的商品資訊：名稱、價格、庫存
+        query = text("""
+            SELECT g.Name AS goods_name, gn.Price AS price, g.Stock_Quantity AS stock
+            FROM Goods g
+            JOIN g_Name gn ON g.Name = gn.Name
+            WHERE g.Store_Name = :shop_name;
+        """)
+        results = db.session.execute(query, {"shop_name": shop_name}).fetchall()
 
-    query = """
-        SELECT goods.Name, g_Name.price, goods.Stock_quantity
-        FROM goods 
-        JOIN g_Name ON goods.Name = g_Name.Name 
-        WHERE Store_name = :shop_name
-    """
+        goods_list = []
+        for row in results:
+            goods_list.append({
+                "name": row[0],
+                "price": float(row[1]),
+                "stock": row[2]
+            })
 
-    # 執行 SQL 查詢並返回結果
-    results = db.session.execute(query, {"shop_name": shop_name}).fetchall()
-    
-    # 將結果格式化為 JSON
-    goods = [{"name": r[0], "price": r[1], "stock": r[2]} for r in results]
+        # JSON 序列化，確保中文正常顯示
+        json_str = json.dumps(goods_list, ensure_ascii=False)
 
-    return jsonify(goods)
+        response = make_response(json_str, 200)
+        response.headers['Content-Type'] = 'application/json; charset=utf-8'
+        return response
+
+    except Exception as e:
+        return jsonify({"error": "Internal server error", "details": str(e)}), 500

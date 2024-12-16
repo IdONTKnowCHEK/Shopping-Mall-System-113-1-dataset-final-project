@@ -1,4 +1,6 @@
-from flask import Blueprint, jsonify, request, current_app
+from flask import Blueprint, jsonify, request, make_response, json
+from models.models import db
+from sqlalchemy import text
 
 purchase_detail_bp = Blueprint('purchase_detail', __name__)
 
@@ -25,15 +27,8 @@ def get_purchase_details():
                 "serial_number": "1",
                 "supplier": "義隆供應商",
                 "time": "2023-03-01 12:35:09",
-                "goods": "10Days 恬褋仕 柔眠枕(晨曦白)10cm",
-                "amount": 14
-              },
-              {
-                "serial_number": "2",
-                "supplier": "順豐供應商",
-                "time": "2023-03-02 14:15:00",
-                "goods": "高級抗菌毛巾",
-                "amount": 20
+                "goods": "花漾戀愛修容組 GLOW FLEUR CHEEKS",
+                "amount": 50
               }
             ]
       400:
@@ -41,36 +36,36 @@ def get_purchase_details():
         examples:
           application/json: {"error": "Shop name is required"}
     """
-    shop_name = request.args.get('shop_name')
-    
-    if not shop_name:
-        return jsonify({"error": "Shop name is required"}), 400
+    try:
+        shop_name = request.args.get('shop_name')
+        if not shop_name:
+            return jsonify({"error": "Shop name is required"}), 400
 
-    # 使用 current_app 獲取 SQLAlchemy 的資料庫會話
-    db = current_app.extensions['sqlalchemy'].db
+        query = text("""
+            SELECT Serial_Number, Supplier, Time, Goods, Amount
+            FROM Purchase_Detail
+            WHERE Store_Name = :shop_name;
+        """)
+        results = db.session.execute(query, {"shop_name": shop_name}).fetchall()
 
-    query = """
-        SELECT serial_number, supplier, time, goods, amount
-        FROM purchase_detail
-        WHERE Store_name = :shop_name
-    """
+        purchase_details = []
+        for row in results:
+            purchase_details.append({
+                "serial_number": row[0],
+                "supplier": row[1],
+                "time": str(row[2]),
+                "goods": row[3],
+                "amount": row[4]
+            })
 
-    # 執行 SQL 查詢並返回結果
-    results = db.session.execute(query, {"shop_name": shop_name}).fetchall()
+        json_str = json.dumps(purchase_details, ensure_ascii=False)
+        response = make_response(json_str, 200)
+        response.headers['Content-Type'] = 'application/json; charset=utf-8'
+        return response
 
-    # 將結果格式化為 JSON
-    purchase_details = [
-        {
-            "serial_number": r[0],
-            "supplier": r[1],
-            "time": r[2],
-            "goods": r[3],
-            "amount": r[4]
-        }
-        for r in results
-    ]
+    except Exception as e:
+        return jsonify({"error": "Internal server error", "details": str(e)}), 500
 
-    return jsonify(purchase_details)
 
 @purchase_detail_bp.route('/purchase-details-by-date', methods=['GET'])
 def get_purchase_details_by_date():
@@ -97,14 +92,6 @@ def get_purchase_details_by_date():
                 "time": "2023-12-15 10:30:00",
                 "goods": "商品A",
                 "amount": 50
-              },
-              {
-                "serial_number": "2",
-                "store_name": "商店2",
-                "supplier": "供應商B",
-                "time": "2023-12-15 11:00:00",
-                "goods": "商品B",
-                "amount": 30
               }
             ]
       400:
@@ -118,35 +105,41 @@ def get_purchase_details_by_date():
           application/json:
             {"error": "No purchase details found for date: 2023-12-15"}
     """
-    date = request.args.get('date')  # 獲取日期參數
-    if not date:
-        return jsonify({"error": "Date is required"}), 400
+    try:
+        input_date = request.args.get('date')
+        if not input_date:
+            return jsonify({"error": "Date is required"}), 400
+        
+        # 將 date 字串轉為當天的起止時間 (00:00:00 ~ 23:59:59)
+        date_start = f"{input_date} 00:00:00"
+        date_end = f"{input_date} 23:59:59"
 
-    # 使用 current_app 獲取資料庫會話
-    db = current_app.extensions['sqlalchemy'].db
+        query = text("""
+            SELECT Serial_Number, Store_Name, Supplier, Time, Goods, Amount
+            FROM Purchase_Detail
+            WHERE Time >= :date_start
+              AND Time <= :date_end;
+        """)
+        results = db.session.execute(query, {"date_start": date_start, "date_end": date_end}).fetchall()
 
-    query = """
-        SELECT serial_number, Store_name, supplier, time, goods, amount 
-        FROM purchase_detail 
-        WHERE DATE(time) = :date;
-    """
-    results = db.session.execute(query, {"date": date}).fetchall()
+        if not results:
+            return jsonify({"error": f"No purchase details found for date: {input_date}"}), 404
 
-    if not results:
-        return jsonify({"error": f"No purchase details found for date: {date}"}), 404
+        purchase_details = []
+        for row in results:
+            purchase_details.append({
+                "serial_number": row[0],
+                "store_name": row[1],
+                "supplier": row[2],
+                "time": str(row[3]),
+                "goods": row[4],
+                "amount": row[5]
+            })
 
-    # 將結果格式化為 JSON
-    purchase_details = [
-        {
-            "serial_number": row[0],
-            "store_name": row[1],
-            "supplier": row[2],
-            "time": row[3],
-            "goods": row[4],
-            "amount": row[5]
-        }
-        for row in results
-    ]
-    return jsonify(purchase_details)
+        json_str = json.dumps(purchase_details, ensure_ascii=False)
+        response = make_response(json_str, 200)
+        response.headers['Content-Type'] = 'application/json; charset=utf-8'
+        return response
 
-
+    except Exception as e:
+        return jsonify({"error": "Internal server error", "details": str(e)}), 500

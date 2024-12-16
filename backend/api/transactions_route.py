@@ -1,4 +1,6 @@
-from flask import Blueprint, jsonify, request, current_app
+from flask import Blueprint, jsonify, request, current_app, Response, make_response, json
+from models.models import db
+from sqlalchemy import text
 
 transactions_bp = Blueprint('transactions', __name__)
 
@@ -25,12 +27,6 @@ def get_transactions_by_date():
                 "time": "2023-12-15 12:20:48",
                 "price": 3590,
                 "payment": "credit card"
-              },
-              {
-                "store_name": "商店2",
-                "time": "2023-12-15 14:00:12",
-                "price": 1250,
-                "payment": "cash"
               }
             ]
       400:
@@ -44,34 +40,44 @@ def get_transactions_by_date():
           application/json:
             {"error": "No transactions found for date: 2023-12-15"}
     """
-    date = request.args.get('date')  # 獲取日期參數
-    if not date:
-        return jsonify({"error": "Date is required"}), 400
+    try:
+        input_date = request.args.get('date')
+        if not input_date:
+            return jsonify({"error": "Date is required"}), 400
+        
+        # 組合當天的起止時間
+        date_start = f"{input_date} 00:00:00"
+        date_end = f"{input_date} 23:59:59"
 
-    # 使用 current_app 獲取資料庫會話
-    db = current_app.extensions['sqlalchemy'].db
+        # Shopping_Sheet 表中包含交易紀錄
+        query = text("""
+            SELECT Store_Name, Time, Price, Payment
+            FROM Shopping_Sheet
+            WHERE Time BETWEEN :date_start AND :date_end
+            ORDER BY Time;
+        """)
+        results = db.session.execute(query, {"date_start": date_start, "date_end": date_end}).fetchall()
 
-    query = """
-        SELECT Store_Name, time, Price, Payment 
-        FROM shopping_sheet 
-        WHERE DATE(time) = :date;
-    """
-    results = db.session.execute(query, {"date": date}).fetchall()
+        if not results:
+            return jsonify({"error": f"No transactions found for date: {input_date}"}), 404
 
-    if not results:
-        return jsonify({"error": f"No transactions found for date: {date}"}), 404
+        transactions = []
+        for row in results:
+            transactions.append({
+                "store_name": row[0],
+                "time": str(row[1]),
+                "price": float(row[2]),
+                "payment": row[3]
+            })
 
-    # 將結果格式化為 JSON
-    transactions = [
-        {
-            "store_name": row[0],
-            "time": row[1],
-            "price": row[2],
-            "payment": row[3]
-        }
-        for row in results
-    ]
-    return jsonify(transactions)
+        json_str = json.dumps(transactions, ensure_ascii=False)
+        response = make_response(json_str, 200)
+        response.headers['Content-Type'] = 'application/json; charset=utf-8'
+        return response
+    
+    except Exception as e:
+        return jsonify({"error": "Internal server error", "details": str(e)}), 500
+
 
 @transactions_bp.route('/transactions-by-payment', methods=['GET'])
 def get_transactions_by_payment():
@@ -97,12 +103,6 @@ def get_transactions_by_payment():
                 "time": "2023-12-15 12:20:48",
                 "price": 3590,
                 "payment": "credit card"
-              },
-              {
-                "store_name": "商店2",
-                "time": "2023-12-15 14:00:12",
-                "price": 1250,
-                "payment": "credit card"
               }
             ]
       400:
@@ -116,31 +116,35 @@ def get_transactions_by_payment():
           application/json:
             {"error": "No transactions found for payment: credit card"}
     """
-    payment = request.args.get('payment')  # 獲取付款方式參數
-    if not payment:
-        return jsonify({"error": "Payment method is required"}), 400
+    try:
+        payment = request.args.get('payment')
+        if not payment:
+            return jsonify({"error": "Payment method is required"}), 400
+        
+        query = text("""
+            SELECT Store_Name, Time, Price, Payment
+            FROM Shopping_Sheet
+            WHERE Payment = :payment
+            ORDER BY Time;
+        """)
+        results = db.session.execute(query, {"payment": payment}).fetchall()
 
-    # 使用 current_app 獲取資料庫會話
-    db = current_app.extensions['sqlalchemy'].db
+        if not results:
+            return jsonify({"error": f"No transactions found for payment: {payment}"}), 404
 
-    query = """
-        SELECT Store_Name, time, Price, Payment 
-        FROM shopping_sheet 
-        WHERE Payment = :payment;
-    """
-    results = db.session.execute(query, {"payment": payment}).fetchall()
+        transactions = []
+        for row in results:
+            transactions.append({
+                "store_name": row[0],
+                "time": str(row[1]),
+                "price": float(row[2]),
+                "payment": row[3]
+            })
 
-    if not results:
-        return jsonify({"error": f"No transactions found for payment: {payment}"}), 404
+        json_str = json.dumps(transactions, ensure_ascii=False)
+        response = make_response(json_str, 200)
+        response.headers['Content-Type'] = 'application/json; charset=utf-8'
+        return response
 
-    # 將結果格式化為 JSON
-    transactions = [
-        {
-            "store_name": row[0],
-            "time": row[1],
-            "price": row[2],
-            "payment": row[3]
-        }
-        for row in results
-    ]
-    return jsonify(transactions)
+    except Exception as e:
+        return jsonify({"error": "Internal server error", "details": str(e)}), 500
