@@ -7,19 +7,24 @@ purchase_detail_bp = Blueprint('purchase_detail', __name__)
 @purchase_detail_bp.route('/purchase-details/shop', methods=['GET'])
 def get_purchase_details():
     """
-    獲取指定店鋪的進貨明細
+    查詢指定店鋪的進貨明細
+    
+    從 Purchase_Detail 資料表中查詢特定店鋪 (Store_Name) 的所有進貨紀錄，包括流水號、供應商、進貨時間、商品與進貨數量。
+    
     ---
     tags:
       - Purchase Details API
+    summary: "查詢指定店鋪的進貨明細"
+    description: "透過 query string 接收參數 shop_name，並在 Purchase_Detail 表中搜尋符合的進貨資料。"
     parameters:
       - name: shop_name
         in: query
         type: string
         required: true
-        description: 店鋪名稱
+        description: "店鋪名稱"
     responses:
       200:
-        description: 返回進貨明細列表
+        description: 成功返回指定店鋪的進貨明細列表
         examples:
           application/json:
             [
@@ -35,7 +40,16 @@ def get_purchase_details():
         description: 缺少參數或請求無效
         examples:
           application/json: {"error": "Shop name is required"}
+      500:
+        description: 內部伺服器錯誤
+        examples:
+          application/json:
+            {
+              "error": "Internal server error",
+              "details": "詳細錯誤資訊"
+            }
     """
+    
     try:
         shop_name = request.args.get('shop_name')
         if not shop_name:
@@ -71,17 +85,24 @@ def get_purchase_details():
 def get_purchase_details_by_date():
     """
     查詢特定日期的進貨明細
+    
+    透過 query string 接收參數 date（格式 YYYY-MM-DD），計算當天起訖時間 (00:00:00 ~ 23:59:59)，
+    並從 Purchase_Detail 資料表中篩選時間落在此區間的所有進貨紀錄。若無查詢到任何結果則回傳 404。
+    
     ---
     tags:
       - Purchase Details API
+    summary: "查詢特定日期的進貨明細"
+    description: "依指定日期，檢索該日期內的所有進貨紀錄。"
     parameters:
       - name: date
         in: query
         type: string
         required: true
+        description: "查詢的日期 (格式 YYYY-MM-DD)"
     responses:
       200:
-        description: 返回特定日期的進貨明細
+        description: 成功返回該日期內所有進貨明細
         examples:
           application/json:
             [
@@ -97,14 +118,22 @@ def get_purchase_details_by_date():
       400:
         description: 缺少參數或請求無效
         examples:
-          application/json:
-            {"error": "Date is required"}
+          application/json: {"error": "Date is required"}
       404:
         description: 找不到進貨明細
         examples:
           application/json:
             {"error": "No purchase details found for date: 2023-12-15"}
+      500:
+        description: 內部伺服器錯誤
+        examples:
+          application/json:
+            {
+              "error": "Internal server error",
+              "details": "詳細錯誤資訊"
+            }
     """
+    
     try:
         input_date = request.args.get('date')
         if not input_date:

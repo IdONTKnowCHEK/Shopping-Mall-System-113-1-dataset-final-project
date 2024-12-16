@@ -7,21 +7,26 @@ goods_bp = Blueprint('goods', __name__)
 @goods_bp.route('/goods/shop', methods=['GET'])
 def get_shop_goods():
     """
-    獲取指定店鋪的商品列表
+    取得指定店鋪的商品列表
+    
+    從 Goods 與 g_Name 資料表中查詢特定店鋪 (Store_Name) 的所有商品資訊，包括名稱、價格、庫存數量等，並以 JSON 清單形式回傳。
+    
     ---
     tags:
       - Goods API
+    summary: "取得指定店鋪的商品列表"
+    description: "透過 query string 接收參數 shop_name，查詢該店鋪所擁有的商品，並返回商品名稱、價格、庫存資訊等。"
     parameters:
       - name: shop_name
         in: query
         type: string
         required: true
-        description: 店鋪名稱
+        description: "店鋪名稱"
     responses:
       200:
-        description: 返回商品列表
+        description: 成功返回指定店鋪的商品列表
         examples:
-          application/json: 
+          application/json:
             [
               {"name": "商品1", "price": 100, "stock": 50},
               {"name": "商品2", "price": 200, "stock": 30}
@@ -30,7 +35,16 @@ def get_shop_goods():
         description: 店鋪名稱缺失或請求無效
         examples:
           application/json: {"error": "Shop name is required"}
+      500:
+        description: 內部伺服器錯誤
+        examples:
+          application/json:
+            {
+              "error": "Internal server error",
+              "details": "詳細錯誤資訊"
+            }
     """
+    
     try:
         # 從 Query 參數取得 shop_name
         shop_name = request.args.get('shop_name')

@@ -8,17 +8,24 @@ transactions_bp = Blueprint('transactions', __name__)
 def get_transactions_by_date():
     """
     查詢特定日期的交易
+    
+    透過 query string 接收參數 date（格式 YYYY-MM-DD），自動組合出當天的起始與結束時間 (00:00:00 ~ 23:59:59)，
+    並從 Shopping_Sheet 資料表中篩選所有落在該日期的交易記錄。
+
     ---
     tags:
       - Transactions API
+    summary: "查詢特定日期的交易記錄"
+    description: "依指定日期，回傳所有於該日期發生的交易，包含商店名稱、交易時間、金額與付款方式。"
     parameters:
       - name: date
         in: query
         type: string
         required: true
+        description: "欲查詢的日期 (格式 YYYY-MM-DD)"
     responses:
       200:
-        description: 返回特定日期的交易記錄
+        description: 成功返回該日期的交易記錄列表
         examples:
           application/json:
             [
@@ -39,7 +46,16 @@ def get_transactions_by_date():
         examples:
           application/json:
             {"error": "No transactions found for date: 2023-12-15"}
+      500:
+        description: 內部伺服器錯誤
+        examples:
+          application/json:
+            {
+              "error": "Internal server error",
+              "details": "詳細錯誤資訊"
+            }
     """
+    
     try:
         input_date = request.args.get('date')
         if not input_date:
@@ -83,18 +99,24 @@ def get_transactions_by_date():
 def get_transactions_by_payment():
     """
     查詢特定付款方式的交易
+
+    透過 query string 接收參數 payment（例如 "credit card", "cash" 等），
+    從 Shopping_Sheet 資料表中篩選對應付款方式的交易紀錄並按時間排序返回。
+
     ---
     tags:
       - Transactions API
+    summary: "查詢指定付款方式的交易紀錄"
+    description: "根據付款方式 (payment) 篩選 Shopping_Sheet 表中的交易記錄，若無查詢到符合條件的交易則回傳 404。"
     parameters:
       - name: payment
         in: query
         type: string
         required: true
-        description: 付款方式 (例如 credit card, cash)
+        description: "付款方式 (例如 credit card, cash)"
     responses:
       200:
-        description: 返回特定付款方式的交易記錄
+        description: 成功返回特定付款方式的交易記錄
         examples:
           application/json:
             [
@@ -115,7 +137,16 @@ def get_transactions_by_payment():
         examples:
           application/json:
             {"error": "No transactions found for payment: credit card"}
+      500:
+        description: 內部伺服器錯誤
+        examples:
+          application/json:
+            {
+              "error": "Internal server error",
+              "details": "詳細錯誤資訊"
+            }
     """
+    
     try:
         payment = request.args.get('payment')
         if not payment:

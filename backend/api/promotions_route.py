@@ -7,19 +7,25 @@ promotions_bp = Blueprint('promotions', __name__)
 @promotions_bp.route('/promotions/shop', methods=['GET'])
 def get_shop_promotions():
     """
-    獲取指定店鋪的促銷活動
+    查詢指定店鋪的促銷活動
+    
+    透過 query string 接收參數 shop_name，從 Promotional_Campaign 資料表中篩選出該店鋪（Store_Name）的所有促銷活動。
+    回傳資料包含促銷活動名稱、起訖時間與促銷方式等資訊。
+    
     ---
     tags:
       - Promotions API
+    summary: "查詢指定店鋪的促銷活動"
+    description: "根據店鋪名稱 (shop_name) 取得該店鋪當前與未來的促銷活動，包括活動名稱、起訖時間、促銷方式等。"
     parameters:
       - name: shop_name
         in: query
         type: string
         required: true
-        description: 店鋪名稱
+        description: "店鋪名稱"
     responses:
       200:
-        description: 返回促銷活動列表
+        description: 成功返回店鋪的促銷活動列表
         examples:
           application/json:
             [
@@ -33,8 +39,18 @@ def get_shop_promotions():
       400:
         description: 缺少參數或請求無效
         examples:
-          application/json: {"error": "Shop name is required"}
+          application/json:
+            {"error": "Shop name is required"}
+      500:
+        description: 內部伺服器錯誤
+        examples:
+          application/json:
+            {
+              "error": "Internal server error",
+              "details": "詳細錯誤資訊"
+            }
     """
+    
     try:
         shop_name = request.args.get('shop_name')
         if not shop_name:
@@ -69,18 +85,24 @@ def get_shop_promotions():
 def get_promotions_by_method():
     """
     查詢促銷活動（按促銷方式）
+    
+    透過 query string 取得參數 method（例如折扣促銷、贈品優惠等），
+    從 Promotional_Campaign 資料表中篩選對應促銷方式的活動。若無符合記錄，回傳 404。
+    
     ---
     tags:
       - Promotions API
+    summary: "查詢特定促銷方式的活動"
+    description: "依據輸入的促銷方式 (method) 篩選出符合條件的促銷活動，回傳其商店名稱、活動名稱、開始及結束時間等資訊。"
     parameters:
       - name: method
         in: query
         type: string
         required: true
-        description: 促銷方式 (例如 折扣促銷, 贈品優惠)
+        description: "促銷方式（例如 折扣促銷, 贈品優惠）"
     responses:
       200:
-        description: 返回按促銷方式篩選的促銷活動
+        description: 成功返回該促銷方式的活動
         examples:
           application/json:
             [
@@ -94,12 +116,23 @@ def get_promotions_by_method():
       400:
         description: 缺少參數或請求無效
         examples:
-          application/json: {"error": "Promotion method is required"}
+          application/json:
+            {"error": "Promotion method is required"}
       404:
         description: 找不到促銷活動
         examples:
-          application/json: {"error": "No promotions found for method: 折扣促銷"}
+          application/json:
+            {"error": "No promotions found for method: 折扣促銷"}
+      500:
+        description: 內部伺服器錯誤
+        examples:
+          application/json:
+            {
+              "error": "Internal server error",
+              "details": "詳細錯誤資訊"
+            }
     """
+    
     try:
         method = request.args.get('method')
         if not method:
@@ -136,19 +169,24 @@ def get_promotions_by_method():
 @promotions_bp.route('/promotions/date', methods=['GET'])
 def get_promotions_by_date():
     """
-    查詢促銷活動（按日期）
+    查詢特定日期正在進行的促銷活動
+
+    透過 query string 接收參數 date（格式 YYYY-MM-DD），判斷該日期是否落在活動的 Start_Time 與 End_Time 區間內，並返回符合條件的促銷列表。
+
     ---
     tags:
       - Promotions API
+    summary: "查詢促銷活動（按日期）"
+    description: "根據指定日期篩選所有當天正在進行的促銷活動，需確認活動 Start_Time <= date_end 與 End_Time >= date_start。"
     parameters:
       - name: date
         in: query
         type: string
         required: true
-        description: 查詢的日期 (格式 YYYY-MM-DD)
+        description: "查詢日期（格式 YYYY-MM-DD）"
     responses:
       200:
-        description: 返回在指定日期進行中的促銷活動
+        description: 成功返回在指定日期內進行的促銷活動
         examples:
           application/json:
             [
@@ -163,12 +201,23 @@ def get_promotions_by_date():
       400:
         description: 缺少參數或請求無效
         examples:
-          application/json: {"error": "Date is required"}
+          application/json:
+            {"error": "Date is required"}
       404:
         description: 找不到促銷活動
         examples:
-          application/json: {"error": "No promotions found for date: 2023-12-15"}
+          application/json:
+            {"error": "No promotions found for date: 2023-12-15"}
+      500:
+        description: 內部伺服器錯誤
+        examples:
+          application/json:
+            {
+              "error": "Internal server error",
+              "details": "詳細錯誤資訊"
+            }
     """
+
     try:
         input_date = request.args.get('date')
         if not input_date:

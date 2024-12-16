@@ -10,13 +10,18 @@ revenue_bp = Blueprint('revenue', __name__)
 @revenue_bp.route('/revenue/top-stores', methods=['GET'])
 def get_top_stores():
     """
-    獲取營業額最高的 10 家商店
+    查詢營業額最高的 10 家商店
+
+    從 Shopping_Sheet 資料表中統計各家商店的累計營業額（Price 加總），依照營業額由大到小排序並限前 10 筆，返回 JSON。
+    
     ---
     tags:
       - Revenue API
+    summary: "取得營業額最高的 10 家商店"
+    description: "統計 Shopping_Sheet 中所有商店的營業額，排序後選出前 10 名並返回其商店名稱與營業額。"
     responses:
       200:
-        description: 返回營業額前 10 名的商店資訊
+        description: 成功返回營業額前 10 名的商店資訊
         examples:
           application/json:
             [
@@ -31,7 +36,16 @@ def get_top_stores():
                 "revenue": 1890.00
               }
             ]
+      500:
+        description: 內部伺服器錯誤
+        examples:
+          application/json:
+            {
+              "error": "Internal server error",
+              "details": "詳細錯誤資訊"
+            }
     """
+    
     try:
         # 針對 Shopping_Sheet 統計各家商店總營業額，並選取前 10 名
         query = text("""
@@ -70,19 +84,25 @@ def get_top_stores():
 @revenue_bp.route('/revenue/branch', methods=['GET'])
 def get_branch_revenue():
     """
-    獲取指定分店的總營業額
+    查詢指定分店的總營業額
+    
+    從 Shopping_Sheet、Shops 與 Shopping_Mall 表格關聯，彙整指定分店 (Branch_Name) 底下所有商店的總營業額。
+    若資料不存在則回傳 0。
+
     ---
     tags:
       - Revenue API
+    summary: "查詢指定分店的總營業額"
+    description: "根據傳入的分店名稱 (branch)，計算該分店底下所有商店的累計營業額。"
     parameters:
       - name: branch
         in: query
         type: string
         required: true
-        description: 分店名稱
+        description: "分店名稱"
     responses:
       200:
-        description: 返回分店的總營業額
+        description: 成功返回該分店總營業額
         examples:
           application/json:
             {
@@ -94,7 +114,16 @@ def get_branch_revenue():
         examples:
           application/json:
             {"error": "Branch name is required"}
+      500:
+        description: 內部伺服器錯誤
+        examples:
+          application/json:
+            {
+              "error": "Internal server error",
+              "details": "詳細錯誤資訊"
+            }
     """
+    
     try:
         branch = request.args.get('branch')
         if not branch:
@@ -135,27 +164,32 @@ def get_branch_revenue():
 @revenue_bp.route('/revenue/branch/stores', methods=['GET'])
 def get_branch_stores_revenue():
     """
-    獲取指定分店內商店的營業額排名
+    查詢指定分店內商店的營業額排名
+    
+    透過 query string 接收參數 branch，從 Shops 與 Shopping_Sheet 資料表中統計該分店內各商店的營業額，並依降序排序後列出排名。
+    
     ---
     tags:
       - Revenue API
+    summary: "查詢指定分店內商店的營業額排名"
+    description: "根據分店名稱 (branch)，將該分店底下所有商店的營業額加總後，由大到小排序並生成排名列表。若查詢不到任何商店或營業額資料，回傳 404。"
     parameters:
       - name: branch
         in: query
         type: string
         required: true
-        description: 分店名稱
+        description: "分店名稱"
     responses:
       200:
-        description: 返回分店內商店的營業額排名
+        description: 成功返回分店內各商店的營業額排名
         examples:
           application/json:
             [
-            {
+              {
                 "rank": 1,
                 "store_name": "BIG TRAIN_新竹店",
                 "revenue": 1890
-            },
+              },
               {
                 "rank": 2,
                 "store_name": "商店2",
@@ -172,6 +206,14 @@ def get_branch_stores_revenue():
         examples:
           application/json:
             {"error": "No revenue data found for branch: 台北忠孝館"}
+      500:
+        description: 內部伺服器錯誤
+        examples:
+          application/json:
+            {
+              "error": "Internal server error",
+              "details": "詳細錯誤資訊"
+            }
     """
     
     try:

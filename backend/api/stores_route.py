@@ -10,20 +10,34 @@ stores_bp = Blueprint('stores', __name__)
 @stores_bp.route('/stores', methods=['GET'])
 def get_stores():
     """
-    獲取所有商店名稱
+    取得所有商店名稱
+
+    從 Shops 資料表中查詢所有 Store_Name，並以 JSON 清單形式返回。
+
     ---
     tags:
       - Stores API
+    summary: "取得所有商店名稱"
+    description: "直接選取 Shops 表裡的 Store_Name 欄位，將結果組裝成清單後回傳。"
     responses:
       200:
-        description: 返回所有商店名稱列表
+        description: 成功返回所有商店名稱列表
         examples:
           application/json:
             [
               "台隆手創館_廣三門市",
               "BIG TRAIN_新竹店"
             ]
+      500:
+        description: 內部伺服器錯誤
+        examples:
+          application/json:
+            {
+              "error": "Internal server error",
+              "details": "詳細錯誤資訊"
+            }
     """
+    
     try:
         # 從 Shops 資料表選取 Store_Name 欄位
         query = text("SELECT Store_Name FROM Shops;")

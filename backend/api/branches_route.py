@@ -9,13 +9,18 @@ branches_bp = Blueprint('branches', __name__)
 @branches_bp.route('/branches', methods=['GET'])
 def get_branches():
     """
-    獲取所有分店名稱
+    取得所有分店名稱
+    
+    從 Shopping_Mall 資料表中查詢所有 Branch_Name，並以 JSON 清單形式返回。
+    
     ---
     tags:
       - Branches API
+    summary: "取得所有分店名稱"
+    description: "從資料庫 Shopping_Mall 表中選取所有分店名稱（Branch_Name）並以 JSON 格式返回。"
     responses:
       200:
-        description: 返回所有分店名稱列表
+        description: 成功返回所有分店名稱列表
         examples:
           application/json:
             [
@@ -23,6 +28,14 @@ def get_branches():
               "台北復興館",
               "高雄店"
             ]
+      500:
+        description: 內部伺服器錯誤
+        examples:
+          application/json:
+            {
+              "error": "Internal server error",
+              "details": "詳細錯誤資訊"
+            }
     """
     
     try:
@@ -47,9 +60,14 @@ def get_branches():
 def get_stores_by_branch():
     """
     根據分店名稱查詢商店
+    
+    從 Shops 資料表中查詢指定分店（Branch_Name）所屬的商店名稱清單，並以 JSON 格式返回。
+    
     ---
     tags:
       - Branches API
+    summary: "根據分店名稱查詢商店"
+    description: "透過 query string 接收一個 branch 參數（必填），查詢其對應的商店名稱列表。"
     parameters:
       - name: branch
         in: query
@@ -58,7 +76,7 @@ def get_stores_by_branch():
         description: 分店名稱
     responses:
       200:
-        description: 返回指定分店的商店列表
+        description: 成功返回指定分店的商店列表
         examples:
           application/json:
             [
@@ -71,6 +89,14 @@ def get_stores_by_branch():
         examples:
           application/json:
             {"error": "Branch name is required"}
+      500:
+        description: 內部伺服器錯誤
+        examples:
+          application/json:
+            {
+              "error": "Internal server error",
+              "details": "詳細錯誤資訊"
+            }
     """
     try:
         # 從 query string 拿取分店名稱

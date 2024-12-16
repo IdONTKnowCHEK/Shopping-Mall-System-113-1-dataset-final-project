@@ -7,19 +7,25 @@ suppliers_bp = Blueprint('suppliers', __name__)
 @suppliers_bp.route('/supplier', methods=['GET'])
 def get_supplier_info():
     """
-    獲取供應商的詳細資訊
+    取得供應商的詳細資訊
+    
+    根據 query string 接收的 supplier_name，從 Supplier 資料表中找出供應商的完整資料（名稱、地址、聯絡方式）。
+    若找不到對應的供應商則回傳 404。
+    
     ---
     tags:
       - Supplier API
+    summary: "查詢供應商資訊"
+    description: "透過 query string 接收一個必填參數 supplier_name，返回該供應商的詳細資訊（名稱、地址、聯絡方式等）。"
     parameters:
       - name: supplier_name
         in: query
         type: string
         required: true
-        description: 供應商名稱
+        description: "供應商名稱"
     responses:
       200:
-        description: 返回供應商的詳細資訊
+        description: 成功返回供應商的詳細資訊
         examples:
           application/json:
             {
@@ -35,7 +41,16 @@ def get_supplier_info():
         description: 找不到供應商
         examples:
           application/json: {"error": "Supplier not found"}
+      500:
+        description: 內部伺服器錯誤
+        examples:
+          application/json:
+            {
+              "error": "Internal server error",
+              "details": "詳細錯誤資訊"
+            }
     """
+    
     try:
         supplier_name = request.args.get('supplier_name')
         if not supplier_name:
