@@ -1,4 +1,4 @@
-from flask import Blueprint, jsonify, request, current_app, Response, make_response
+from flask import Blueprint, jsonify, request, current_app, Response, make_response, json
 from models.models import db
 from sqlalchemy import text
 
