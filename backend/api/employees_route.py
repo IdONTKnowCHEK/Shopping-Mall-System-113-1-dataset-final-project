@@ -1,4 +1,7 @@
-from flask import Blueprint, jsonify, request, current_app
+from flask import Blueprint, jsonify, request, make_response, json
+from models.models import db
+from sqlalchemy import text
+
 
 employees_bp = Blueprint('employees', __name__)
 
@@ -26,12 +29,6 @@ def get_shop_employees():
                 "contact": "0932-425789",
                 "position": "店長",
                 "working_hours": "11:00~21:30"
-              },
-              {
-                "name": "王小明",
-                "contact": "0987-654321",
-                "position": "員工",
-                "working_hours": "09:00~18:00"
               }
             ]
       400:
@@ -39,32 +36,37 @@ def get_shop_employees():
         examples:
           application/json: {"error": "Shop name is required"}
     """
-    shop_name = request.args.get('shop_name')
-    if not shop_name:
-        return jsonify({"error": "Shop name is required"}), 400
+    try:
+        shop_name = request.args.get('shop_name')
+        if not shop_name:
+            return jsonify({"error": "Shop name is required"}), 400
 
-    db = current_app.extensions['sqlalchemy'].db
+        query = text("""
+            SELECT Name, Contact, Position, Shift_Time
+            FROM Shop_Employee
+            WHERE Store_Name = :shop_name;
+        """)
+        results = db.session.execute(query, {"shop_name": shop_name}).fetchall()
 
-    query = """
-        SELECT Name, contact, Position, CONCAT(Start_work_time, '~', End_work_time) AS working_hours
-        FROM shop_employee 
-        WHERE store_name = :shop_name
-    """
+        employee_list = []
+        for row in results:
+            employee_list.append({
+                "name": row[0],
+                "contact": row[1],
+                "position": row[2],
+                # working_hours 命名可自行調整
+                "working_hours": row[3]  
+            })
 
-    results = db.session.execute(query, {"shop_name": shop_name}).fetchall()
+        json_str = json.dumps(employee_list, ensure_ascii=False)
+        response = make_response(json_str, 200)
+        response.headers['Content-Type'] = 'application/json; charset=utf-8'
+        return response
+    
+    except Exception as e:
+        return jsonify({"error": "Internal server error", "details": str(e)}), 500
 
-    employees = [
-        {
-            "name": r[0],
-            "contact": r[1],
-            "position": r[2],
-            "working_hours": r[3]
-        }
-        for r in results
-    ]
 
-    return jsonify(employees)
-  
 @employees_bp.route('/shop/employees/time', methods=['GET'])
 def get_employees_by_time():
     """
@@ -82,6 +84,7 @@ def get_employees_by_time():
         in: query
         type: string
         required: true
+        description: 查詢的時間（格式建議 HH:MM）
     responses:
       200:
         description: 返回正在工作的員工列表
@@ -92,11 +95,6 @@ def get_employees_by_time():
                 "name": "陳家琪",
                 "contact": "0932-425789",
                 "position": "店長"
-              },
-              {
-                "name": "王小明",
-                "contact": "0987-654321",
-                "position": "員工"
               }
             ]
       400:
@@ -104,36 +102,54 @@ def get_employees_by_time():
         examples:
           application/json: {"error": "Shop name and time are required"}
     """
-    shop_name = request.args.get('shop_name')
-    time = request.args.get('time')
+    try:
+        shop_name = request.args.get('shop_name')
+        query_time = request.args.get('time')  # 假設格式為 HH:MM，例如 '14:30'
+        if not shop_name or not query_time:
+            return jsonify({"error": "Shop name and time are required"}), 400
 
-    if not shop_name or not time:
-        return jsonify({"error": "Shop name and time are required"}), 400
+        # 查詢該店鋪下的所有員工
+        query = text("""
+            SELECT Name, Contact, Position, Shift_Time
+            FROM Shop_Employee
+            WHERE Store_Name = :shop_name;
+        """)
+        results = db.session.execute(query, {"shop_name": shop_name}).fetchall()
 
-    db = current_app.extensions['sqlalchemy'].db
+        # 將 query_time（HH:MM）轉為以分鐘計算，方便比對
+        def time_to_minutes(t):
+            h, m = t.split(":")
+            return int(h)*60 + int(m)
 
-    query = """
-        SELECT Name, contact, Position 
-        FROM shop_employee 
-        WHERE store_name = :shop_name 
-        AND :time >= Start_work_time 
-        AND End_work_time >= :time
-    """
+        query_minutes = time_to_minutes(query_time)
+        
+        working_employees = []
+        for row in results:
+            name, contact, position, shift_str = row
+            # 假設 shift_str 格式為 'HH:MM-HH:MM'
+            # 例如 '9:00-16:30'
+            if shift_str and '-' in shift_str:
+                start_str, end_str = shift_str.split('-')
+                start_minutes = time_to_minutes(start_str)
+                end_minutes = time_to_minutes(end_str)
+                
+                # 簡化判斷：query_minutes 介於 start_minutes 與 end_minutes 之間
+                # 若跨天班表（例如 22:00-06:00）則需更複雜處理，這裡僅示範一般情況。
+                if start_minutes <= query_minutes <= end_minutes:
+                    working_employees.append({
+                        "name": name,
+                        "contact": contact,
+                        "position": position
+                    })
 
-    # 執行 SQL 查詢並返回結果
-    results = db.session.execute(query, {"shop_name": shop_name, "time": time}).fetchall()
+        json_str = json.dumps(working_employees, ensure_ascii=False)
+        response = make_response(json_str, 200)
+        response.headers['Content-Type'] = 'application/json; charset=utf-8'
+        return response
 
-    # 將結果格式化為 JSON
-    employees = [
-        {
-            "name": r[0],
-            "contact": r[1],
-            "position": r[2]
-        }
-        for r in results
-    ]
+    except Exception as e:
+        return jsonify({"error": "Internal server error", "details": str(e)}), 500
 
-    return jsonify(employees)
 
 @employees_bp.route('/branch/employees', methods=['GET'])
 def get_branch_employees():
@@ -160,13 +176,6 @@ def get_branch_employees():
                 "position": "店長",
                 "start_work_time": "11:00",
                 "end_work_time": "21:30"
-              },
-              {
-                "name": "林怡如",
-                "contact": "0912-345678",
-                "position": "兼職人員",
-                "start_work_time": "09:00",
-                "end_work_time": "16:30"
               }
             ]
       400:
@@ -180,35 +189,45 @@ def get_branch_employees():
           application/json:
             {"error": "No employee data found for branch: 台北忠孝館"}
     """
-    branch = request.args.get('branch')  # 獲取分店名稱參數
-    if not branch:
-        return jsonify({"error": "Branch name is required"}), 400
+    try:
+        branch = request.args.get('branch')
+        if not branch:
+            return jsonify({"error": "Branch name is required"}), 400
 
-    # 使用 current_app 獲取資料庫會話
-    db = current_app.extensions['sqlalchemy'].db
+        query = text("""
+            SELECT Name, Contact, Position, Shift_Time
+            FROM Mall_Employee
+            WHERE Branch_Name = :branch;
+        """)
+        results = db.session.execute(query, {"branch": branch}).fetchall()
 
-    query = """
-        SELECT Name, contact, Position, Start_work_time, End_work_time
-        FROM mall_employee
-        WHERE Branch_Name = :branch;
-    """
-    results = db.session.execute(query, {"branch": branch}).fetchall()
+        if not results:
+            return jsonify({"error": f"No employee data found for branch: {branch}"}), 404
 
-    if not results:
-        return jsonify({"error": f"No employee data found for branch: {branch}"}), 404
+        employees = []
+        for row in results:
+            name, contact, position, shift_str = row
+            # 分割 Shift_Time，假設格式為 '11:00-21:30'
+            start_work_time, end_work_time = '', ''
+            if shift_str and '-' in shift_str:
+                start_work_time, end_work_time = shift_str.split('-')
 
-    # 將結果格式化為 JSON
-    employees = [
-        {
-            "name": row[0],
-            "contact": row[1],
-            "position": row[2],
-            "start_work_time": row[3],
-            "end_work_time": row[4]
-        }
-        for row in results
-    ]
-    return jsonify(employees)
+            employees.append({
+                "name": name,
+                "contact": contact,
+                "position": position,
+                "start_work_time": start_work_time,
+                "end_work_time": end_work_time
+            })
+
+        json_str = json.dumps(employees, ensure_ascii=False)
+        response = make_response(json_str, 200)
+        response.headers['Content-Type'] = 'application/json; charset=utf-8'
+        return response
+
+    except Exception as e:
+        return jsonify({"error": "Internal server error", "details": str(e)}), 500
+
 
 @employees_bp.route('/position-employees', methods=['GET'])
 def get_position_employees():
@@ -234,12 +253,6 @@ def get_position_employees():
                 "contact": "0932-425789",
                 "work_time": "11:00~21:30",
                 "location": "台北忠孝館"
-              },
-              {
-                "name": "林士昇",
-                "contact": "0966-487512",
-                "work_time": "09:00~18:00",
-                "location": "新竹店"
               }
             ]
       400:
@@ -253,44 +266,44 @@ def get_position_employees():
           application/json:
             {"error": "No employee data found for position: 店長"}
     """
-    position = request.args.get('position')  # 獲取職位名稱參數
-    if not position:
-        return jsonify({"error": "Position is required"}), 400
+    try:
+        position = request.args.get('position')
+        if not position:
+            return jsonify({"error": "Position is required"}), 400
 
-    # 使用 current_app 獲取資料庫會話
-    db = current_app.extensions['sqlalchemy'].db
+        # 在兩張表中查詢相同職位的員工：Mall_Employee & Shop_Employee
+        # 注意：Shift_Time 命名一致，但位置欄位在 Mall_Employee 是 Branch_Name，而在 Shop_Employee 是 Store_Name。
+        # 可使用 UNION ALL 將兩邊資料合併，最後用同一結構回傳。
+        query = text("""
+            SELECT Name, Contact, Position, Shift_Time, Branch_Name AS location, 'mall' AS source
+            FROM Mall_Employee
+            WHERE Position = :pos
 
-    # 查詢分店員工
-    query_mall = """
-        SELECT Name, contact, Start_work_time, End_work_time, Branch_Name
-        FROM mall_employee
-        WHERE Position = :position;
-    """
-    mall_results = db.session.execute(query_mall, {"position": position}).fetchall()
+            UNION ALL
 
-    # 查詢商店員工
-    query_shop = """
-        SELECT Name, contact, Start_work_time, End_work_time, Store_Name
-        FROM shop_employee
-        WHERE Position = :position;
-    """
-    shop_results = db.session.execute(query_shop, {"position": position}).fetchall()
+            SELECT Name, Contact, Position, Shift_Time, Store_Name AS location, 'shop' AS source
+            FROM Shop_Employee
+            WHERE Position = :pos;
+        """)
+        results = db.session.execute(query, {"pos": position}).fetchall()
 
-    # 合併結果
-    results = mall_results + shop_results
+        if not results:
+            return jsonify({"error": f"No employee data found for position: {position}"}), 404
 
-    if not results:
-        return jsonify({"error": f"No employee data found for position: {position}"}), 404
+        employees = []
+        for row in results:
+            name, contact, pos, shift_time, location, source = row
+            employees.append({
+                "name": name,
+                "contact": contact,
+                "work_time": shift_time,
+                "location": location
+            })
 
-    # 格式化結果為 JSON
-    employees = [
-        {
-            "name": row[0],
-            "contact": row[1],
-            "work_time": f"{row[2]}~{row[3]}",
-            "location": row[4]
-        }
-        for row in results
-    ]
-    return jsonify(employees)
+        json_str = json.dumps(employees, ensure_ascii=False)
+        response = make_response(json_str, 200)
+        response.headers['Content-Type'] = 'application/json; charset=utf-8'
+        return response
 
+    except Exception as e:
+        return jsonify({"error": "Internal server error", "details": str(e)}), 500
