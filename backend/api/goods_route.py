@@ -4,7 +4,7 @@ from sqlalchemy import text
 
 goods_bp = Blueprint('goods', __name__)
 
-@goods_bp.route('/shop/goods', methods=['GET'])
+@goods_bp.route('/goods/shop', methods=['GET'])
 def get_shop_goods():
     """
     獲取指定店鋪的商品列表

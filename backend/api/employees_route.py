@@ -5,7 +5,7 @@ from sqlalchemy import text
 
 employees_bp = Blueprint('employees', __name__)
 
-@employees_bp.route('/shop/employees', methods=['GET'])
+@employees_bp.route('/employees/shop', methods=['GET'])
 def get_shop_employees():
     """
     獲取指定店鋪的員工列表
@@ -67,7 +67,7 @@ def get_shop_employees():
         return jsonify({"error": "Internal server error", "details": str(e)}), 500
 
 
-@employees_bp.route('/shop/employees/time', methods=['GET'])
+@employees_bp.route('/employees/shop/time', methods=['GET'])
 def get_employees_by_time():
     """
     獲取特定時間正在工作的員工
@@ -151,7 +151,7 @@ def get_employees_by_time():
         return jsonify({"error": "Internal server error", "details": str(e)}), 500
 
 
-@employees_bp.route('/branch/employees', methods=['GET'])
+@employees_bp.route('/employees/branch', methods=['GET'])
 def get_branch_employees():
     """
     獲取指定分店的員工資料
@@ -229,7 +229,7 @@ def get_branch_employees():
         return jsonify({"error": "Internal server error", "details": str(e)}), 500
 
 
-@employees_bp.route('/position-employees', methods=['GET'])
+@employees_bp.route('/employees/position', methods=['GET'])
 def get_position_employees():
     """
     獲取指定職位的員工資料

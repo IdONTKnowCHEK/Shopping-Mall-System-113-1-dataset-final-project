@@ -4,7 +4,7 @@ from sqlalchemy import text
 
 promotions_bp = Blueprint('promotions', __name__)
 
-@promotions_bp.route('/shop/promotions', methods=['GET'])
+@promotions_bp.route('/promotions/shop', methods=['GET'])
 def get_shop_promotions():
     """
     獲取指定店鋪的促銷活動
@@ -65,7 +65,7 @@ def get_shop_promotions():
         return jsonify({"error": "Internal server error", "details": str(e)}), 500
 
 
-@promotions_bp.route('/promotions-by-method', methods=['GET'])
+@promotions_bp.route('/promotions/method', methods=['GET'])
 def get_promotions_by_method():
     """
     查詢促銷活動（按促銷方式）
@@ -133,7 +133,7 @@ def get_promotions_by_method():
         return jsonify({"error": "Internal server error", "details": str(e)}), 500
 
 
-@promotions_bp.route('/promotions-by-date', methods=['GET'])
+@promotions_bp.route('/promotions/date', methods=['GET'])
 def get_promotions_by_date():
     """
     查詢促銷活動（按日期）

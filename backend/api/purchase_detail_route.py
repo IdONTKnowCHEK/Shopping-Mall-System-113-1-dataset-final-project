@@ -4,7 +4,7 @@ from sqlalchemy import text
 
 purchase_detail_bp = Blueprint('purchase_detail', __name__)
 
-@purchase_detail_bp.route('/shop/purchase-details', methods=['GET'])
+@purchase_detail_bp.route('/purchase-details/shop', methods=['GET'])
 def get_purchase_details():
     """
     獲取指定店鋪的進貨明細
@@ -67,7 +67,7 @@ def get_purchase_details():
         return jsonify({"error": "Internal server error", "details": str(e)}), 500
 
 
-@purchase_detail_bp.route('/purchase-details-by-date', methods=['GET'])
+@purchase_detail_bp.route('/purchase-details/date', methods=['GET'])
 def get_purchase_details_by_date():
     """
     查詢特定日期的進貨明細
