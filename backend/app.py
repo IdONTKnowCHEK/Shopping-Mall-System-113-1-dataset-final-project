@@ -11,6 +11,7 @@ from models.models import db
 def create_app(config_name='default'):
     app = Flask(__name__)
     app.config.from_object(config[config_name])
+    app.config['JSON_AS_ASCII'] = False  # 關閉 ASCII-only
 
     # 初始化資料庫
     db.init_app(app)
@@ -30,5 +31,3 @@ if __name__ == "__main__":
     os.environ['FLASK_ENV'] = 'development'  # 開發模式
     app = create_app()
     app.run(host="0.0.0.0", port=5000, debug=True)
-
-# Swagger: http://localhost:8080/apidocs/#/

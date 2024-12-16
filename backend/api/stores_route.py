@@ -1,4 +1,8 @@
-from flask import Blueprint, jsonify, request, current_app
+from flask import Blueprint, jsonify, request, current_app, Response, make_response
+from models.models import db
+from sqlalchemy import text
+
+import json
 
 stores_bp = Blueprint('stores', __name__)
 
@@ -27,16 +31,15 @@ def get_top_stores():
               }
             ]
     """
-    # 使用 current_app 獲取資料庫會話
-    db = current_app.extensions['sqlalchemy'].db
 
-    query = """
-        SELECT RANK() OVER (ORDER BY SUM(Price) DESC) AS RANK, Store_Name, SUM(Price)
+    query = text("""
+        SELECT RANK() OVER (ORDER BY SUM(Price) DESC) AS RANK, Store_Name, SUM(Price) AS Revenue
         FROM shopping_sheet
         GROUP BY Store_Name
         ORDER BY RANK
         LIMIT 10;
-    """
+    """)
+
     results = db.session.execute(query).fetchall()
 
     # 將結果轉為 JSON 格式
@@ -135,15 +138,24 @@ def get_branches():
               "高雄店"
             ]
     """
-    # 使用 current_app 獲取資料庫會話
-    db = current_app.extensions['sqlalchemy'].db
+    
+    try:
+        query = text("SELECT Branch_Name FROM Shopping_Mall;")
+        results = db.session.execute(query).fetchall()
 
-    query = "SELECT Branch_Name FROM shopping_mall;"
-    results = db.session.execute(query).fetchall()
+        branches = [row[0] for row in results]
 
-    # 將分店名稱整理為 JSON 格式
-    branches = [row[0] for row in results]
-    return jsonify(branches)
+        # 手動序列化確保不會轉成 \uXXXX
+        json_str = json.dumps(branches, ensure_ascii=False)
+
+        # 設定正確的 Content-Type 與 charset
+        response = make_response(json_str, 200)
+        response.headers['Content-Type'] = 'application/json; charset=utf-8'
+        return response
+
+    except Exception as e:
+        return jsonify({'error': 'Internal server error', 'details': str(e)}), 500
+
 
 @stores_bp.route('/branch-revenue', methods=['GET'])
 def get_branch_revenue():

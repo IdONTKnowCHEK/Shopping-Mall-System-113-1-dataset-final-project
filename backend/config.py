@@ -7,7 +7,7 @@ class Config:
 class DevelopmentConfig(Config):
     """Development configuration."""
     DEBUG = True
-    SQLALCHEMY_DATABASE_URI = "mysql+pymysql://root:password@database/SOGO"  # 替換為您的數據庫連接字串
+    SQLALCHEMY_DATABASE_URI = "mysql+pymysql://root:password@database:3306/SOGO"  # 替換為您的數據庫連接字串
 
 
 # 配置映射
