@@ -8,21 +8,33 @@ services:
     ports:
       - "8080:80"
     depends_on:
-      - backend
+      - backend1
+      - backend2
     networks:
       - app_network
 
-  backend:
+  backend1:
     build:
       context: ./backend
-    container_name: backend
+    container_name: backend1
     volumes:
       - ./backend:/app
     environment:
       - SERVER_NAME=backend
     networks:
       - app_network
-      
+
+  backend2:
+    build:
+      context: ./backend
+    container_name: backend2
+    volumes:
+      - ./backend:/app
+    environment:
+      - SERVER_NAME=backend
+    networks:
+      - app_network
+
   db:
     build:
       context: ./database
