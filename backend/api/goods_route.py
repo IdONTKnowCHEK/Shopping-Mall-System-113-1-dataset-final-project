@@ -51,12 +51,10 @@ def get_shop_goods():
         if not shop_name:
             return jsonify({"error": "Shop name is required"}), 400
 
-        # 查詢指定店鋪的商品資訊：名稱、價格、庫存
         query = text("""
-            SELECT g.Name AS goods_name, gn.Price AS price, g.Stock_Quantity AS stock
-            FROM Goods g
-            JOIN g_Name gn ON g.Name = gn.Name
-            WHERE g.Store_Name = :shop_name;
+            SELECT Name AS goods_name, Price AS price, Stock_Quantity AS stock
+            FROM Goods
+            WHERE Store_Name = :shop_name;
         """)
         results = db.session.execute(query, {"shop_name": shop_name}).fetchall()
 
@@ -65,7 +63,8 @@ def get_shop_goods():
             goods_list.append({
                 "name": row[0],
                 "price": float(row[1]),
-                "stock": row[2]
+                "stock": row[2],
+                "price": row[1]  # 確保價格欄位正確返回
             })
 
         # JSON 序列化，確保中文正常顯示
