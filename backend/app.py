@@ -1,6 +1,6 @@
 import os
 
-from flask import Flask
+from flask import Flask, render_template
 from flasgger import Swagger
 
 from api.routes import register_blueprints  # Blueprint 註冊器
@@ -20,9 +20,9 @@ def create_app(config_name='default'):
 
     swagger = Swagger(app)
 
-    @app.route("/")
-    def hello_world():
-        return "Hello, World!"
+    @app.route('/')
+    def index():
+        return render_template('index.html')
 
     return app
 
