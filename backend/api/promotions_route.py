@@ -56,6 +56,7 @@ def get_shop_promotions():
         if not shop_name:
             return jsonify({"error": "Shop name is required"}), 400
 
+        # 查詢指定店鋪的促銷活動
         query = text("""
             SELECT Name, Start_Time, End_Time, Method
             FROM Promotional_Campaign
@@ -138,6 +139,7 @@ def get_promotions_by_method():
         if not method:
             return jsonify({"error": "Promotion method is required"}), 400
 
+        # 查詢指定促銷方式的活動
         query = text("""
             SELECT Store_Name, Name, Start_Time, End_Time
             FROM Promotional_Campaign
@@ -230,6 +232,7 @@ def get_promotions_by_date():
         date_start = f"{input_date} 00:00:00"
         date_end = f"{input_date} 23:59:59"
 
+        # 查詢指定日期的促銷活動
         query = text("""
             SELECT Store_Name, Name, Start_Time, End_Time, Method
             FROM Promotional_Campaign

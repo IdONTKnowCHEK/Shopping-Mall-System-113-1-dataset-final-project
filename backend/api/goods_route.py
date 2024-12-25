@@ -51,6 +51,7 @@ def get_shop_goods():
         if not shop_name:
             return jsonify({"error": "Shop name is required"}), 400
 
+        # 查詢指定店鋪的商品資訊
         query = text("""
             SELECT Name AS goods_name, Price AS price, Stock_Quantity AS stock
             FROM Goods

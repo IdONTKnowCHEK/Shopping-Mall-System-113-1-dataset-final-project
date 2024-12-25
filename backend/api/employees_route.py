@@ -56,6 +56,7 @@ def get_shop_employees():
         if not shop_name:
             return jsonify({"error": "Shop name is required"}), 400
 
+        # 查詢該店鋪下的所有員工
         query = text("""
             SELECT Name, Contact, Position, Shift_Time
             FROM Shop_Employee
@@ -243,6 +244,7 @@ def get_branch_employees():
         if not branch:
             return jsonify({"error": "Branch name is required"}), 400
 
+        # 查詢該分店下的所有員工
         query = text("""
             SELECT Name, Contact, Position, Shift_Time
             FROM Mall_Employee
@@ -334,6 +336,7 @@ def get_position_employees():
         if not position:
             return jsonify({"error": "Position is required"}), 400
 
+        # UNION Mall_Employee 與 Shop_Employee 兩個資料表
         query = text("""
             SELECT Name, Contact, Position, Shift_Time, Branch_Name AS location, 'mall' AS source
             FROM Mall_Employee
