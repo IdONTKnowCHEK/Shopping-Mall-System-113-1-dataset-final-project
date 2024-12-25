@@ -12,6 +12,7 @@ def get_shop_promotions():
     透過 query string 接收參數 shop_name，從 Promotional_Campaign 資料表中篩選出該店鋪（Store_Name）的所有促銷活動。
     回傳資料包含促銷活動名稱、起訖時間與促銷方式等資訊。
     
+    例如: "1929家居生活館_高雄店"
     ---
     tags:
       - Promotions API
@@ -31,8 +32,8 @@ def get_shop_promotions():
             [
               {
                 "name": "夏日嘉年華",
-                "start_time": "2023-06-01 10:00:00",
-                "end_time": "2023-06-05 18:00:00",
+                "start_time": "2024-06-01 10:00:00",
+                "end_time": "2024-06-05 18:00:00",
                 "method": "折扣促銷"
               }
             ]
@@ -90,6 +91,7 @@ def get_promotions_by_method():
     透過 query string 取得參數 method（例如折扣促銷、贈品優惠等），
     從 Promotional_Campaign 資料表中篩選對應促銷方式的活動。若無符合記錄，回傳 404。
     
+    例如: 折扣促銷、贈品優惠
     ---
     tags:
       - Promotions API
@@ -100,7 +102,7 @@ def get_promotions_by_method():
         in: query
         type: string
         required: true
-        description: "促銷方式（例如 折扣促銷, 贈品優惠）"
+        description: "促銷方式"
     responses:
       200:
         description: 成功返回該促銷方式的活動
@@ -110,8 +112,8 @@ def get_promotions_by_method():
               {
                 "store_name": "商店1",
                 "promotion_name": "夏日促銷",
-                "start_time": "2023-06-01 10:00:00",
-                "end_time": "2023-06-10 18:00:00"
+                "start_time": "2024-06-01 10:00:00",
+                "end_time": "2024-06-10 18:00:00"
               }
             ]
       400:
@@ -174,7 +176,7 @@ def get_promotions_by_date():
     查詢特定日期正在進行的促銷活動
 
     透過 query string 接收參數 date（格式 YYYY-MM-DD），判斷該日期是否落在活動的 Start_Time 與 End_Time 區間內，並返回符合條件的促銷列表。
-
+    例如: 2024-06-01
     ---
     tags:
       - Promotions API
@@ -185,7 +187,7 @@ def get_promotions_by_date():
         in: query
         type: string
         required: true
-        description: "查詢日期（格式 YYYY-MM-DD）"
+        description: "查詢日期"
     responses:
       200:
         description: 成功返回在指定日期內進行的促銷活動
@@ -195,8 +197,8 @@ def get_promotions_by_date():
               {
                 "store_name": "商店1",
                 "promotion_name": "夏日促銷",
-                "start_time": "2023-06-01 10:00:00",
-                "end_time": "2023-06-10 18:00:00",
+                "start_time": "2024-06-01 10:00:00",
+                "end_time": "2024-06-10 18:00:00",
                 "method": "折扣促銷"
               }
             ]
@@ -209,7 +211,7 @@ def get_promotions_by_date():
         description: 找不到促銷活動
         examples:
           application/json:
-            {"error": "No promotions found for date: 2023-12-15"}
+            {"error": "No promotions found for date: 2024-12-15"}
       500:
         description: 內部伺服器錯誤
         examples:

@@ -10,7 +10,7 @@ def get_purchase_details():
     查詢指定店鋪的進貨明細
     
     從 Purchase_Detail 資料表中查詢特定店鋪 (Store_Name) 的所有進貨紀錄，包括流水號、供應商、進貨時間、商品與進貨數量。
-    
+    例如: 0918_台北忠孝館
     ---
     tags:
       - Purchase Details API
@@ -31,7 +31,7 @@ def get_purchase_details():
               {
                 "serial_number": "1",
                 "supplier": "義隆供應商",
-                "time": "2023-03-01 12:35:09",
+                "time": "2024-03-01 12:35:09",
                 "goods": "花漾戀愛修容組 GLOW FLEUR CHEEKS",
                 "amount": 50
               }
@@ -89,6 +89,7 @@ def get_purchase_details_by_date():
     透過 query string 接收參數 date（格式 YYYY-MM-DD），計算當天起訖時間 (00:00:00 ~ 23:59:59)，
     並從 Purchase_Detail 資料表中篩選時間落在此區間的所有進貨紀錄。若無查詢到任何結果則回傳 404。
     
+    例如: 2024-03-01 
     ---
     tags:
       - Purchase Details API
@@ -110,7 +111,7 @@ def get_purchase_details_by_date():
                 "serial_number": "1",
                 "store_name": "商店1",
                 "supplier": "供應商A",
-                "time": "2023-12-15 10:30:00",
+                "time": "2024-12-15 10:30:00",
                 "goods": "商品A",
                 "amount": 50
               }
@@ -123,7 +124,7 @@ def get_purchase_details_by_date():
         description: 找不到進貨明細
         examples:
           application/json:
-            {"error": "No purchase details found for date: 2023-12-15"}
+            {"error": "No purchase details found for date: 2024-12-15"}
       500:
         description: 內部伺服器錯誤
         examples:

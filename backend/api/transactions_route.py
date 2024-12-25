@@ -11,7 +11,7 @@ def get_transactions_by_date():
     
     透過 query string 接收參數 date（格式 YYYY-MM-DD），自動組合出當天的起始與結束時間 (00:00:00 ~ 23:59:59)，
     並從 Shopping_Sheet 資料表中篩選所有落在該日期的交易記錄。
-
+    例如: 2024-05-28
     ---
     tags:
       - Transactions API
@@ -31,7 +31,7 @@ def get_transactions_by_date():
             [
               {
                 "store_name": "商店1",
-                "time": "2023-12-15 12:20:48",
+                "time": "2024-12-15 12:20:48",
                 "price": 3590,
                 "payment": "credit card"
               }
@@ -45,7 +45,7 @@ def get_transactions_by_date():
         description: 找不到交易記錄
         examples:
           application/json:
-            {"error": "No transactions found for date: 2023-12-15"}
+            {"error": "No transactions found for date: 2024-12-15"}
       500:
         description: 內部伺服器錯誤
         examples:
@@ -102,7 +102,7 @@ def get_transactions_by_payment():
 
     透過 query string 接收參數 payment（例如 "credit card", "cash" 等），
     從 Shopping_Sheet 資料表中篩選對應付款方式的交易紀錄並按時間排序返回。
-
+    例如: credit card
     ---
     tags:
       - Transactions API
@@ -113,7 +113,7 @@ def get_transactions_by_payment():
         in: query
         type: string
         required: true
-        description: "付款方式 (例如 credit card, cash)"
+        description: "付款方式"
     responses:
       200:
         description: 成功返回特定付款方式的交易記錄
@@ -122,7 +122,7 @@ def get_transactions_by_payment():
             [
               {
                 "store_name": "商店1",
-                "time": "2023-12-15 12:20:48",
+                "time": "2024-12-15 12:20:48",
                 "price": 3590,
                 "payment": "credit card"
               }

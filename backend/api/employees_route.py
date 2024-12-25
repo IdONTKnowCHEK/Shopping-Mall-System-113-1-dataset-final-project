@@ -11,7 +11,7 @@ def get_shop_employees():
     取得指定店鋪的員工列表
     
     從 Shop_Employee 資料表中查詢所有屬於指定店鋪 (Store_Name) 的員工資訊，並返回 JSON 清單。
-    
+    例如: 23區_台北忠孝館
     ---
     tags:
       - Employees API
@@ -22,7 +22,6 @@ def get_shop_employees():
         in: query
         type: string
         required: true
-        description: 店鋪名稱
     responses:
       200:
         description: 成功返回員工列表
@@ -93,7 +92,7 @@ def get_employees_by_time():
     - time：查詢的時間（建議格式 HH:MM）
 
     系統會從 Shop_Employee 表取得該店鋪下所有員工的排班資訊，並判斷指定時間點是否落在員工的班表區間。如果員工當前正在上班，便將其資訊（姓名、聯絡方式、職位等）返回。
-
+    例如: 23區_台北忠孝館 + 13:30
     ---
     tags:
       - Employees API
@@ -104,12 +103,12 @@ def get_employees_by_time():
         in: query
         type: string
         required: true
-        description: "店鋪名稱"
+        description: 店鋪名稱
       - name: time
         in: query
         type: string
         required: true
-        description: "查詢的時間（格式 HH:MM）"
+        description: 查詢的時間（格式 HH:MM） 
     responses:
       200:
         description: 成功返回正在工作的員工列表
@@ -193,7 +192,7 @@ def get_branch_employees():
     
     從 Mall_Employee 資料表中查詢指定分店 (Branch_Name) 的員工資訊，並返回 JSON 清單。
     Shift_Time 以「start_work_time - end_work_time」的格式呈現，例如「11:00 - 21:30」。
-    
+    例如: 台北忠孝館
     ---
     tags:
       - Employees API
@@ -286,7 +285,7 @@ def get_position_employees():
     
     從 Mall_Employee 與 Shop_Employee 資料表查詢指定職位 (Position) 的所有員工，並將兩者合併後返回 JSON 清單。
     為了區分不同來源（分店員工或店舖員工），可在回傳結構中加入來源欄位（如 source），或依需求整併顯示。
-    
+    例如 : "正職人員"
     ---
     tags:
       - Employees API

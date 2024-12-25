@@ -13,7 +13,6 @@ def get_top_stores():
     查詢營業額最高的 10 家商店
 
     從 Shopping_Sheet 資料表中統計各家商店的累計營業額（Price 加總），依照營業額由大到小排序並限前 10 筆，返回 JSON。
-    
     ---
     tags:
       - Revenue API
@@ -89,6 +88,7 @@ def get_branch_revenue():
     從 Shopping_Sheet、Shops 與 Shopping_Mall 表格關聯，彙整指定分店 (Branch_Name) 底下所有商店的總營業額。
     若資料不存在則回傳 0。
 
+    例如: 台北忠孝館
     ---
     tags:
       - Revenue API
@@ -168,6 +168,7 @@ def get_branch_stores_revenue():
     
     透過 query string 接收參數 branch，從 Shops 與 Shopping_Sheet 資料表中統計該分店內各商店的營業額，並依降序排序後列出排名。
     
+    例如: 台北忠孝館
     ---
     tags:
       - Revenue API

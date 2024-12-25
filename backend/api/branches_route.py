@@ -62,7 +62,6 @@ def get_stores_by_branch():
     根據分店名稱查詢商店
     
     從 Shops 資料表中查詢指定分店（Branch_Name）所屬的商店名稱清單，並以 JSON 格式返回。
-    
     ---
     tags:
       - Branches API
@@ -73,7 +72,7 @@ def get_stores_by_branch():
         in: query
         type: string
         required: true
-        description: 分店名稱
+        description: 分店名稱 (e.g. 台北忠孝館)
     responses:
       200:
         description: 成功返回指定分店的商店列表

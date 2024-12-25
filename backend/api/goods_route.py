@@ -10,7 +10,7 @@ def get_shop_goods():
     取得指定店鋪的商品列表
     
     從 Goods 與 g_Name 資料表中查詢特定店鋪 (Store_Name) 的所有商品資訊，包括名稱、價格、庫存數量等，並以 JSON 清單形式回傳。
-    
+    例如: 23區_台北忠孝館
     ---
     tags:
       - Goods API
@@ -21,7 +21,7 @@ def get_shop_goods():
         in: query
         type: string
         required: true
-        description: "店鋪名稱"
+        description: 店鋪名稱
     responses:
       200:
         description: 成功返回指定店鋪的商品列表

@@ -12,6 +12,7 @@ def get_supplier_info():
     根據 query string 接收的 supplier_name，從 Supplier 資料表中找出供應商的完整資料（名稱、地址、聯絡方式）。
     若找不到對應的供應商則回傳 404。
     
+    例如: 義隆供應商
     ---
     tags:
       - Supplier API
